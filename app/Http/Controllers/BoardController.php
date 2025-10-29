@@ -7,6 +7,7 @@ use App\Models\Memos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class BoardController extends Controller
 {
@@ -71,6 +72,21 @@ class BoardController extends Controller
 
     public function create(Request $request)
     {
+        // 'username' 필드명으로 요청받으므로 Validator 필드명도 맞춤
+        $validator = Validator::make($request->all(), [
+            'subject' => 'required',          // 프론트엔드의 username과 맞춰야 함
+        ], [
+            'subject.required' => '제목을 입력해주세요.',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'msg' => '필수값이 빠졌거나 비밀번호 규칙을 위반했습니다.',
+                'result' => false,
+                'errors' => $validator->errors()
+            ], 200);
+        }
+
         $form_data = array(
             'subject' => $request->subject,
             'content' => $request->content,
@@ -83,7 +99,7 @@ class BoardController extends Controller
         if(auth()->check()){
             $rs=Board::create($form_data);
             FileTables::where('pid', $request->pid)->where('userid', Auth::user()->userid)->wherein('code',['boardattach','editorattach'])->update(array('pid' => $rs->bid));
-            return response()->json(array('msg'=> "succ", 'bid'=>$rs->bid), 200);
+            return response()->json(array('result' => true, 'msg'=> "succ", 'bid'=>$rs->bid), 200);
         }
     }
 

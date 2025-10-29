@@ -192,6 +192,12 @@
             pid : pid,
             code : code
         };
+
+        if(!subject){
+          alert('제목을 입력해주세요.');
+          return false;
+        }
+
         $.ajax({
             headers: {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')},
             type: 'post',
@@ -200,7 +206,12 @@
             enctype: 'multipart/form-data',
             data: data,
             success: function(data) {
-                location.href='/boards/show/'+data.bid+'/1';
+                if(data.result==true){
+                    location.href='/boards/show/'+data.bid+'/1';
+                }else{
+                    alert(data.msg);
+                    return false;
+                }
             },
             error: function(data) {
                 console.log("error" +data);
